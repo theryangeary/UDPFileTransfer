@@ -1,1 +1,4 @@
 Programming_Assignment_1.pdf
+*.o
+client
+server
