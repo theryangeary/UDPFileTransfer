@@ -1,26 +1,16 @@
 CC=gcc
 CFLAGS=-Wall
 
-all: TCPEchoClient TCPEchoServer
+all: client server
 
-OTHER_OBSS = DieWithError.o HandleTCPClient.o
+OBJ = DieWithError.o HandleTCPClient.o
 
-TCPEchoClient :	TCPEchoClient.o	$(OTHER_OBSS)
+client: TCPEchoClient.o $(OBJ)
+	$(CC) -o $@ $^
 
-TCPEchoServer :	TCPEchoServer.o	$(OTHER_OBSS)
-
-DieWithError.o : DieWithError.c
-				CC -c DieWithError.c
-
-HandleTCPClient.o : HandleTCPClient.c
-				CC -c HandleTCPClient.c
-
-TCPEchoClient.o: TCPEchoClient.c
-				CC -c TCPEchoClient.c
-
-TCPEchoSever.o: TCPEchoSever.c 
-				CC -c TCPEchoSever.c
+server: TCPEchoServer.o $(OBJ)
+	$(CC) -o $@ $^
 
 clean:
-		rm -f	TCPEchoClient.o	DieWithError.o HandleTCPClient.o TCPEchoServer.o TCPEchoClient.exe TCPEchoServer.exe
-				
+	rm *.o client server
+
