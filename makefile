@@ -3,13 +3,13 @@ CFLAGS=-Wall
 
 all: client server
 
-OBJ = DieWithError.o HandleTCPClient.o
+OBJ = common.o
 
-client: TCPEchoClient.o $(OBJ)
-	$(CC) -o $@ $^
+client: client.o $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
 
-server: TCPEchoServer.o $(OBJ)
-	$(CC) -o $@ $^
+server: server.o $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
 	rm *.o client server
