@@ -3,12 +3,12 @@ CFLAGS=-Wall
 
 all: client server
 
-OBJ = common.o
+SRC = common.c
 
-client: client.o $(OBJ)
+client: client.c $(SRC)
 	$(CC) $(CFLAGS) -o $@ $^
 
-server: server.o $(OBJ)
+server: server.c $(SRC)
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:

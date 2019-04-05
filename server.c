@@ -1,0 +1,72 @@
+#include "server.h"
+
+int main(int argc, char** argv) {
+  // defining some variables
+  int serverSocket;
+  int clientSocket;
+  struct sockaddr_in serverAddress;
+  struct sockaddr_in clientAddress;
+  unsigned int serverPort;
+  unsigned int clientLength;
+
+  // check that server port was provided
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s <server port number>\n", argv[0]);
+    exit(1);
+  }
+
+  serverPort = atoi(argv[1]); // set server port
+
+  // create TCP socket
+  if ((serverSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+    throwError("socket() failed");
+  }
+
+  // set up serverAddress struct
+  memset(&serverAddress, 0, sizeof(serverAddress));
+  serverAddress.sin_family = AF_INET;
+  serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+  serverAddress.sin_port = htons(serverPort);
+
+  // bind socket
+  if (bind(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) < 0) {
+    throwError("bind() failed");
+  } else {
+    printf("bind() succeeded");
+  }
+
+  // listen for incoming connections
+  if (listen(serverSocket, MAXSOCK) < 0) {
+    throwError("listen() failed");
+  } else {
+    printf("listen() succeeded");
+  }
+
+  while (1) {
+    clientLength = sizeof(clientAddress);
+    if ((clientSocket = accept(serverSocket, (struct sockaddr*) &clientAddress, &clientLength)) < 0) {
+      throwError("accept() failed");
+    }
+    printf("Serving client %s\n", inet_ntoa(clientAddress.sin_addr));
+    handleClient(clientSocket);
+  }
+
+  return 0;
+}
+
+void handleClient(int socket) {
+  char filenameBuffer[RECV_BUF_SIZE];
+  int msgSize;
+
+  printf("Handling socket %d\n", socket);
+
+  if ((msgSize = recv(socket, filenameBuffer, RECV_BUF_SIZE, 0)) < 0) {
+    throwError("recv() failed");
+  }
+
+  printf("Message size: %d\n", msgSize);
+
+  while (msgSize > 0) {
+    printf("hey i made it");
+  }
+}
