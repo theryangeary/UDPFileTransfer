@@ -32,14 +32,14 @@ int main(int argc, char** argv) {
   if (bind(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) < 0) {
     throwError("bind() failed");
   } else {
-    printf("bind() succeeded");
+    printf("bind() succeeded\n");
   }
 
   // listen for incoming connections
   if (listen(serverSocket, MAXSOCK) < 0) {
     throwError("listen() failed");
   } else {
-    printf("listen() succeeded");
+    printf("listen() succeeded\n");
   }
 
   while (1) {
