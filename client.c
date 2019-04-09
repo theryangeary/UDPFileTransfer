@@ -2,7 +2,7 @@
 
 int main(int argc, char** argv) {
   // declare some variables
-  int socket;
+  int sock;
   struct sockaddr_in serverAddress;
   unsigned short serverPort;
   char* serverIP;
@@ -25,14 +25,14 @@ int main(int argc, char** argv) {
   serverAddress.sin_addr.s_addr = inet_addr(serverIP);
   serverAddress.sin_port = htons(serverPort);
 
-  if (connect(socket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) < 0) {
+  if (connect(sock, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) < 0) {
     throwError("connect() failed");
   }
 
   printf("Connection succeeded\n");
   filenameLength = strlen(filename);
 
-  if (send(socket, filename, filenameLength, 0) != filenameLength) {
+  if (send(sock, filename, filenameLength, 0) != filenameLength) {
     throwError("send() did not send correct length message");
   }
 
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
   totalBytesReceived = 0;
 
   while (totalBytesReceived < filenameLength) {
-    if ((bytesReceived = recv(socket, filename, RECV_BUF_SIZE-1, 0)) <= 0) {
+    if ((bytesReceived = recv(sock, filename, RECV_BUF_SIZE-1, 0)) <= 0) {
       throwError("recv() failed or connection closed");
     }
     printf("Received %d bytes\n", bytesReceived);
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     printf(fileBuffer);
   }
   printf("\n");
-  close(socket);
+  close(sock);
 
   return 0;
 }
