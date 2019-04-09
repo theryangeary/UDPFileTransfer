@@ -63,10 +63,13 @@ void handleClient(int socket) {
   if ((msgSize = recv(socket, filenameBuffer, RECV_BUF_SIZE, 0)) < 0) {
     throwError("recv() failed");
   }
+  filenameBuffer[msgSize] = '\0';
 
   printf("Message size: %d\n", msgSize);
 
-  while (msgSize > 0) {
-    printf("hey i made it");
+  if (0 != access(filenameBuffer, F_OK)) {
+    printf("File does not exist\n");
+  } else {
+    printf("Sending file %s\n", filenameBuffer);
   }
 }
