@@ -18,6 +18,12 @@ int main(int argc, char** argv) {
   }
 
   serverIP = argv[1];
+  serverPort = atoi(argv[2]);
+  filename = argv[3];
+
+  if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+    throwError("socket() failed");
+  }
 
   // set up serverAddress struct
   memset(&serverAddress, 0, sizeof(serverAddress));
@@ -47,7 +53,7 @@ int main(int argc, char** argv) {
     printf("Received %d bytes\n", bytesReceived);
     totalBytesReceived += bytesReceived;
     filename[bytesReceived] = '\0';
-    printf(fileBuffer);
+    printf("%s\n", filename);
   }
   printf("\n");
   close(sock);
