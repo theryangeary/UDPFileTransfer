@@ -54,22 +54,30 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-void handleClient(int socket) {
-  char filenameBuffer[RECV_BUF_SIZE];
+void handleClient(int sock) {
+  char filename[RECV_BUF_SIZE];
   int msgSize;
 
-  printf("Handling socket %d\n", socket);
+  printf("Handling sock %d\n", sock);
 
-  if ((msgSize = recv(socket, filenameBuffer, RECV_BUF_SIZE, 0)) < 0) {
+  if ((msgSize = recv(sock, filename, RECV_BUF_SIZE, 0)) < 0) {
     throwError("recv() failed");
   }
-  filenameBuffer[msgSize] = '\0';
+  filename[msgSize] = '\0';
 
   printf("Message size: %d\n", msgSize);
 
-  if (0 != access(filenameBuffer, F_OK)) {
-    printf("File does not exist\n");
+  if (0 != access(filename, F_OK)) {
+    const char* errorFmtStr = "Requested file %s does not exist\n";
+    printf("strlen(filename): %ld\n", strlen(filename));
+    printf("strlen(errorFmtStr): %ld\n", strlen(errorFmtStr));
+    int errorStringLength = strlen(errorFmtStr) + strlen(filename);
+    char errorString[errorStringLength];
+    snprintf(errorString, errorStringLength, errorFmtStr, filename);
+    if (send(sock, errorString, strlen(errorString), 0) != strlen(errorString)) {
+      throwError("send() error message failed");
+    }
   } else {
-    printf("Sending file %s\n", filenameBuffer);
+    printf("Sending file %s\n", filename);
   }
 }
