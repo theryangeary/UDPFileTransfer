@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
   totalBytesReceived = 0;
 
-  while (totalBytesReceived < filenameLength) {
+  while (1) {
     if ((bytesReceived = recv(sock, filename, RECV_BUF_SIZE-1, 0)) <= 0) {
       throwError("recv() failed or connection closed");
     }
