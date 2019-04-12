@@ -17,10 +17,12 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+  // get input parameters
   serverIP = argv[1];
   serverPort = atoi(argv[2]);
   filename = argv[3];
 
+  // establish socket
   if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
     throwError("socket() failed");
   }
@@ -31,17 +33,17 @@ int main(int argc, char** argv) {
   serverAddress.sin_addr.s_addr = inet_addr(serverIP);
   serverAddress.sin_port = htons(serverPort);
 
+  // connect to server
   if (connect(sock, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) < 0) {
     throwError("connect() failed");
   }
-
   printf("Connection succeeded\n");
-  filenameLength = strlen(filename);
 
+  // send filename to server
+  filenameLength = strlen(filename);
   if (send(sock, filename, filenameLength, 0) != filenameLength) {
     throwError("send() did not send correct length message");
   }
-
   printf("sent message\n");
 
   totalBytesReceived = 0;
