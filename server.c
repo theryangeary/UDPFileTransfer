@@ -67,17 +67,15 @@ void handleClient(int sock) {
 
   printf("Message size: %d\n", msgSize);
 
-  if (0 != access(filename, F_OK)) {
+  // check if file exists
+  char fileExists = (char) access(filename, F_OK);
+  if (0 != fileExists) {
+    printf("File does not exist\n");
+  }
 
-    const char* errorFmtStr = "Requested file %s does not exist\n";
-    int errorStringLength = strlen(errorFmtStr) + strlen(filename);
-    char errorString[errorStringLength];
-    snprintf(errorString, errorStringLength, errorFmtStr, filename);
-
-    if (send(sock, errorString, strlen(errorString), 0) != strlen(errorString)) {
-      throwError("send() error message failed");
-    }
-
+  // send fileExists check
+  if (send(sock, &fileExists, 1, 0) != 1) {
+    printf("Failed to send file access result\n");
   } else {
     printf("Sending file %s\n", filename);
   }
