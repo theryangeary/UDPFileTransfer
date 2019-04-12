@@ -58,23 +58,28 @@ int main(int argc, char** argv) {
   }
 
   // receive file
-  downloadedFile = open(filename, O_WRONLY | O_CREAT);
+  int downloadedFile = open(filename, O_WRONLY | O_CREAT);
   if (-1 == downloadedFile) {
     throwError("Failed to access destination file");
   }
 
-  totalBytesReceived = 0;
-
-  while (1) {
-    if ((bytesReceived = recv(sock, filename, RECV_BUF_SIZE-1, 0)) <= 0) {
-      throwError("recv() failed or connection closed");
-    }
-    printf("Received %d bytes\n", bytesReceived);
-    totalBytesReceived += bytesReceived;
-    filename[bytesReceived] = '\0';
-    printf("%s\n", filename);
+  printf("Receiving file\n");
+  while ((bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0)) > 0) {
+    int writeResult = write(downloadedFile, rcvBuffer, bytesReceived);
   }
-  printf("\n");
+
+  /*totalBytesReceived = 0;*/
+
+  /*while (1) {*/
+    /*if ((bytesReceived = recv(sock, filename, RECV_BUF_SIZE-1, 0)) <= 0) {*/
+      /*throwError("recv() failed or connection closed");*/
+    /*}*/
+    /*printf("Received %d bytes\n", bytesReceived);*/
+    /*totalBytesReceived += bytesReceived;*/
+    /*filename[bytesReceived] = '\0';*/
+    /*printf("%s\n", filename);*/
+  /*}*/
+  /*printf("\n");*/
   close(sock);
 
   return 0;
