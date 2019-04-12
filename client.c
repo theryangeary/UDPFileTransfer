@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
   unsigned short serverPort;
   char* serverIP;
   char* filename;
-  char fileBuffer[RECV_BUF_SIZE];
+  char rcvBuffer[RECV_BUF_SIZE];
   unsigned int filenameLength;
   int bytesReceived, totalBytesReceived;
 
