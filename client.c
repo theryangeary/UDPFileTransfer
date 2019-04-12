@@ -48,12 +48,12 @@ int main(int argc, char** argv) {
 
   // receive status of access() on server
   char fileExists;
-  if (bytesReceived = recv(sock, &fileExists, 1, 0) <= 0) {
+  if ((bytesReceived = recv(sock, &fileExists, 1, 0)) <= 0) {
     throwError("Did not receive file access acknowledgement");
   }
 
   // check if file exists on server
-  if (0 == fileExists) {
+  if (0 != fileExists) {
     throwError("Remote file does not exist");
   }
 
