@@ -95,7 +95,6 @@ void handleClient(int sock) {
     while (sendTotal < fileSize){
       readResult = read(file, sendBuffer, BUF_SIZE);
       sendResult = send(sock, sendBuffer, readResult, 0);
-      printf("Sent %d bytes from %s for %d\n", readResult, sendBuffer, sendResult);
       sendTotal += sendResult;
     }
   }
