@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
 
   // check if file exists on server
   if (0 == fileSize) {
+    errno = ENOENT;
     throwError("Remote file does not exist");
   }
 
