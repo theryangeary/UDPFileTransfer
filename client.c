@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
   char* filename;
   char rcvBuffer[RECV_BUF_SIZE];
   unsigned int filenameLength;
-  int bytesReceived, totalBytesReceived;
+  int bytesReceived, totalBytesReceived = 0;
 
   // Check cli input number
   if (argc != 4) {
@@ -47,46 +47,30 @@ int main(int argc, char** argv) {
   printf("sent message\n");
 
   // receive status of access() on server
-  char fileExists;
-  if ((bytesReceived = recv(sock, &fileExists, 1, 0)) <= 0) {
+  int fileSize;
+  if ((bytesReceived = recv(sock, &fileSize, sizeof(int), 0)) <= 0) {
     throwError("Did not receive file access acknowledgement");
   }
 
   // check if file exists on server
-  if (0 != fileExists) {
+  if (0 == fileSize) {
     throwError("Remote file does not exist");
   }
 
   // receive file
-  int downloadedFile = open(filename, O_WRONLY | O_CREAT);
+  int downloadedFile = open(filename, O_WRONLY | O_CREAT, S_IRWXU);
   if (-1 == downloadedFile) {
     throwError("Failed to access destination file");
   }
 
   printf("Receiving file\n");
-  while ((bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0)) > 0) {
-    int brk = (-1 == rcvBuffer[bytesReceived-1]);
-    if (brk) {
-      bytesReceived--;
-    }
+  while (totalBytesReceived < fileSize) {
+    bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
     int writeResult = write(downloadedFile, rcvBuffer, bytesReceived);
-    if (brk) {
-      break;
-    }
+    totalBytesReceived += bytesReceived;
   }
+  close(downloadedFile);
 
-  /*totalBytesReceived = 0;*/
-
-  /*while (1) {*/
-    /*if ((bytesReceived = recv(sock, filename, RECV_BUF_SIZE-1, 0)) <= 0) {*/
-      /*throwError("recv() failed or connection closed");*/
-    /*}*/
-    /*printf("Received %d bytes\n", bytesReceived);*/
-    /*totalBytesReceived += bytesReceived;*/
-    /*filename[bytesReceived] = '\0';*/
-    /*printf("%s\n", filename);*/
-  /*}*/
-  /*printf("\n");*/
   close(sock);
 
   return 0;

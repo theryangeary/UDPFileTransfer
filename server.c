@@ -69,13 +69,20 @@ void handleClient(int sock) {
 
   // check if file exists
   char fileExists = (char) access(filename, F_OK);
+  int fileSize;
   if (0 != fileExists) {
     printf("File does not exist\n");
+    fileSize = 0;
+  } else {
+    // get size of file
+    struct stat st;
+    stat(filename, &st);
+    fileSize = st.st_size;
   }
 
-  // send fileExists check
-  if (send(sock, &fileExists, 1, 0) != 1) {
-    printf("Failed to send file access result\n");
+  // send fileSize
+  if (send(sock, &fileSize, sizeof(int), 0) != sizeof(int)) {
+    printf("Failed to send file size\n");
   } else {
     int file = open(filename, O_RDONLY);
     if (file < 0) {
@@ -84,14 +91,12 @@ void handleClient(int sock) {
     printf("Sending file %s\n", filename);
     int readResult, sendResult;
     char sendBuffer[BUF_SIZE];
-    do {
+    int sendTotal = 0;
+    while (sendTotal < fileSize){
       readResult = read(file, sendBuffer, BUF_SIZE);
-      if (readResult < BUF_SIZE) {
-        sendBuffer[readResult] = ((char) -1);
-        readResult++;
-      }
       sendResult = send(sock, sendBuffer, readResult, 0);
-      printf("Sent %d bytes from %s\n", readResult, sendBuffer);
-    } while (readResult != 1 && sendResult != 0);
+      printf("Sent %d bytes from %s for %d\n", readResult, sendBuffer, sendResult);
+      sendTotal += sendResult;
+    }
   }
 }
