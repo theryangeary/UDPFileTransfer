@@ -60,42 +60,45 @@ void handleClient(int sock) {
 
   printf("Handling sock %d\n", sock);
 
-  if ((msgSize = recv(sock, filename, RECV_BUF_SIZE, 0)) < 0) {
-    throwError("recv() failed");
-  }
-  filename[msgSize] = '\0';
-
-  printf("Message size: %d\n", msgSize);
-
-  // check if file exists
-  char fileExists = (char) access(filename, F_OK);
-  int fileSize;
-  if (0 != fileExists) {
-    printf("File does not exist\n");
-    fileSize = 0;
-  } else {
-    // get size of file
-    struct stat st;
-    stat(filename, &st);
-    fileSize = st.st_size;
-  }
-
-  // send fileSize
-  if (send(sock, &fileSize, sizeof(int), 0) != sizeof(int)) {
-    printf("Failed to send file size\n");
-  } else {
-    int file = open(filename, O_RDONLY);
-    if (file < 0) {
-      printf("Failed to open file\n");
+  while(1) {
+    if ((msgSize = recv(sock, filename, RECV_BUF_SIZE, 0)) < 0) {
+      throwError("Client disconnected");
     }
-    printf("Sending file %s\n", filename);
-    int readResult, sendResult;
-    char sendBuffer[BUF_SIZE];
-    int sendTotal = 0;
-    while (sendTotal < fileSize){
-      readResult = read(file, sendBuffer, BUF_SIZE);
-      sendResult = send(sock, sendBuffer, readResult, 0);
-      sendTotal += sendResult;
+    filename[msgSize] = '\0';
+
+    printf("Message size: %d\n", msgSize);
+
+    // check if file exists
+    char fileExists = (char) access(filename, F_OK);
+    int fileSize;
+    if (0 != fileExists) {
+      printf("File does not exist\n");
+      fileSize = 0;
+    } else {
+      // get size of file
+      struct stat st;
+      stat(filename, &st);
+      fileSize = st.st_size;
+    }
+
+    // send fileSize
+    if (send(sock, &fileSize, sizeof(int), 0) != sizeof(int)) {
+      printf("Failed to send file size\n");
+    } else {
+      int file = open(filename, O_RDONLY);
+      if (file < 0) {
+        printf("Failed to open file\n");
+      }
+      printf("Sending file %s\n", filename);
+      int readResult, sendResult;
+      char sendBuffer[BUF_SIZE];
+      int sendTotal = 0;
+      while (sendTotal < fileSize){
+        readResult = read(file, sendBuffer, BUF_SIZE);
+        sendResult = send(sock, sendBuffer, readResult, 0);
+        sendTotal += sendResult;
+      }
+      printf("Done sending file %s\n", filename);
     }
   }
 }
