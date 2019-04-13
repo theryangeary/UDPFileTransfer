@@ -77,6 +77,21 @@ void handleClient(int sock) {
   if (send(sock, &fileExists, 1, 0) != 1) {
     printf("Failed to send file access result\n");
   } else {
+    int file = open(filename, O_RDONLY);
+    if (file < 0) {
+      printf("Failed to open file\n");
+    }
     printf("Sending file %s\n", filename);
+    int readResult, sendResult;
+    char sendBuffer[BUF_SIZE];
+    do {
+      readResult = read(file, sendBuffer, BUF_SIZE);
+      if (readResult < BUF_SIZE) {
+        sendBuffer[readResult] = ((char) -1);
+        readResult++;
+      }
+      sendResult = send(sock, sendBuffer, readResult, 0);
+      printf("Sent %d bytes from %s\n", readResult, sendBuffer);
+    } while (readResult != 1 && sendResult != 0);
   }
 }

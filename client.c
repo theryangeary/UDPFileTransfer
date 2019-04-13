@@ -65,7 +65,14 @@ int main(int argc, char** argv) {
 
   printf("Receiving file\n");
   while ((bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0)) > 0) {
+    int brk = (-1 == rcvBuffer[bytesReceived-1]);
+    if (brk) {
+      bytesReceived--;
+    }
     int writeResult = write(downloadedFile, rcvBuffer, bytesReceived);
+    if (brk) {
+      break;
+    }
   }
 
   /*totalBytesReceived = 0;*/
