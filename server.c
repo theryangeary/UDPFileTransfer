@@ -61,8 +61,8 @@ void handleClient(int sock) {
   printf("Handling sock %d\n", sock);
 
   while(1) {
-    if ((msgSize = recv(sock, filename, RECV_BUF_SIZE, 0)) < 0) {
-      throwError("Client disconnected");
+    if ((msgSize = recv(sock, filename, RECV_BUF_SIZE, 0)) <= 0) {
+      printf("Client disconnected");
     }
     filename[msgSize] = '\0';
 
@@ -85,6 +85,7 @@ void handleClient(int sock) {
     if (send(sock, &fileSize, sizeof(int), 0) != sizeof(int)) {
       printf("Failed to send file size\n");
     } else {
+      // open file
       int file = open(filename, O_RDONLY);
       if (file < 0) {
         printf("Failed to open file\n");
@@ -93,11 +94,19 @@ void handleClient(int sock) {
       int readResult, sendResult;
       char sendBuffer[BUF_SIZE];
       int sendTotal = 0;
+      unsigned char check = 0;
+      // send file to client
       while (sendTotal < fileSize){
         readResult = read(file, sendBuffer, BUF_SIZE);
+        check = checksum(sendBuffer, readResult, check);
         sendResult = send(sock, sendBuffer, readResult, 0);
         sendTotal += sendResult;
       }
+
+      // send checksum of file
+      sendBuffer[0] = check;
+      sendResult = send(sock, sendBuffer, sizeof(char), 0);
+
       printf("Done sending file %s\n", filename);
     }
   }

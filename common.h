@@ -11,3 +11,4 @@
 
 void throwError(char* msg);
 void throwErrorWithCode(char* msg, int exitCode);
+unsigned char checksum(char* fileByte, size_t size, unsigned char check);

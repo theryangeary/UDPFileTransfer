@@ -7,9 +7,11 @@ int main(int argc, char** argv) {
   unsigned short serverPort;
   char* serverIP;
   char* filename;
+  char* end = '\0';
   char rcvBuffer[RECV_BUF_SIZE];
   unsigned int filenameLength;
   int bytesReceived, totalBytesReceived = 0;
+  end;
 
   // Check cli input number
   if (argc != 4) {
@@ -40,9 +42,9 @@ int main(int argc, char** argv) {
   printf("Connection succeeded\n");
 
   do {
+    totalBytesReceived = 0;
     // send filename to server
     filenameLength = strlen(filename);
-    printf("%d\n", filenameLength);
     if (send(sock, filename, filenameLength, 0) != filenameLength) {
       throwError("send() did not send correct length message");
     }
@@ -67,17 +69,39 @@ int main(int argc, char** argv) {
     }
 
     printf("Receiving file\n");
+    unsigned char check = 0;
+    // receive file and calculate checksum
     while (totalBytesReceived < fileSize) {
       bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
-      int writeResult = write(downloadedFile, rcvBuffer, bytesReceived);
       totalBytesReceived += bytesReceived;
+      if (totalBytesReceived > fileSize) {
+        bytesReceived--;
+        check = checksum(rcvBuffer+bytesReceived, 1, check);
+      }
+      int writeResult = write(downloadedFile, rcvBuffer, bytesReceived);
+      check = checksum(rcvBuffer, bytesReceived, check);
     }
+
+    // close file
     close(downloadedFile);
 
+    // check if checksums match
+    if (0 != check) {
+      bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
+      check = checksum(rcvBuffer, 1, check);
+      if (0 != check) {
+        fprintf(stderr, "The file received does not have a matching checksum\n");
+      }
+    }
+
+    // prompt for additional files
     char newFilename[100];
     printf("Enter another filename to download or type \"exit\"\n");
     scanf("%s", newFilename);
     filename = newFilename;
+
+    recv(sock, NULL, RECV_BUF_SIZE, MSG_DONTWAIT);
+    end;
   } while (strcmp(filename, "exit") != 0);
 
   close(sock);
