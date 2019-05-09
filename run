@@ -1,0 +1,10 @@
+#!/bin/bash
+kill -9 $(ps aux | grep "\./server" | head -1 | awk '{print $2}')
+set -e
+make
+mv client test
+./server 45000 &
+cd test
+./client 127.0.0.1 45000 server
+cat file1
+cd ..
