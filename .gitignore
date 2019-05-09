@@ -7,3 +7,7 @@ Session.vim
 test
 test1
 .Programming_Assignment_1.pdf
+*.swp
+examples
+ProgrammingAssignment-2.pdf
+compile_commands.json
