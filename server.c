@@ -33,6 +33,8 @@ int main(int argc, char** argv) {
   serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
   serverAddress.sin_port = htons(serverPort);
 
+  srand(time(NULL));
+
   // bind socket
   if (bind(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) < 0) {
     throwError("bind() failed");
