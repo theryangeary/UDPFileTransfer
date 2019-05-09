@@ -5,6 +5,8 @@ int main(int argc, char** argv) {
   int sock;
   struct sockaddr_in serverAddress;
   unsigned short serverPort;
+  struct sockaddr_in fromAddress;
+  unsigned int fromSize;
   char* serverIP;
   char* filename;
   char* end = '\0';
@@ -15,7 +17,7 @@ int main(int argc, char** argv) {
 
   // Check cli input number
   if (argc != 4) {
-    fprintf(stderr, "Usage: %s <server IP> <server port> <filename>\n", argv[0]);
+    fprintf(stderr, "[CLIENT] Usage: %s <server IP> <server port> <filename>\n", argv[0]);
     exit(1);
   }
 
@@ -25,7 +27,7 @@ int main(int argc, char** argv) {
   filename = argv[3];
 
   // establish socket
-  if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+  if((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
     throwError("socket() failed");
   }
 
@@ -35,25 +37,37 @@ int main(int argc, char** argv) {
   serverAddress.sin_addr.s_addr = inet_addr(serverIP);
   serverAddress.sin_port = htons(serverPort);
 
-  // connect to server
-  if (connect(sock, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) < 0) {
-    throwError("connect() failed");
-  }
-  printf("Connection succeeded\n");
-
   do {
     totalBytesReceived = 0;
     // send filename to server
     filenameLength = strlen(filename);
-    if (send(sock, filename, filenameLength, 0) != filenameLength) {
+    if (sendto(
+          sock,
+          filename,
+          filenameLength,
+          0,
+          (struct sockaddr*) &serverAddress,
+          sizeof(serverAddress))
+        != filenameLength) {
       throwError("send() did not send correct length message");
     }
-    printf("sent message\n");
+    printf("[CLIENT] sent message\n");
 
     // receive status of access() on server
     int fileSize;
-    if ((bytesReceived = recv(sock, &fileSize, sizeof(int), 0)) <= 0) {
+    if ((bytesReceived = recvfrom(
+            sock,
+            &fileSize,
+            sizeof(int),
+            0,
+            (struct sockaddr*) &fromAddress,
+            &fromSize))
+        <= 0) {
       throwError("Did not receive file access acknowledgement");
+    }
+
+    if (serverAddress.sin_addr.s_addr != fromAddress.sin_addr.s_addr) {
+      fprintf(stderr,"[CLIENT] Error: received a packet from unknown source.\n");
     }
 
     // check if file exists on server
@@ -68,7 +82,7 @@ int main(int argc, char** argv) {
       throwError("Failed to access destination file");
     }
 
-    printf("Receiving file\n");
+    printf("[CLIENT] Receiving file\n");
     unsigned char check = 0;
     // receive file and calculate checksum
     while (totalBytesReceived < fileSize) {
@@ -90,13 +104,13 @@ int main(int argc, char** argv) {
       bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
       check = checksum(rcvBuffer, 1, check);
       if (0 != check) {
-        fprintf(stderr, "The file received does not have a matching checksum\n");
+        fprintf(stderr, "[CLIENT] The file received does not have a matching checksum\n");
       }
     }
 
     // prompt for additional files
     char newFilename[100];
-    printf("Enter another filename to download or type \"exit\"\n");
+    printf("[CLIENT] Enter another filename to download or type \"exit\"\n");
     scanf("%s", newFilename);
     filename = newFilename;
 
