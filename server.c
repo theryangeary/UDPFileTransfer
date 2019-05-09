@@ -9,14 +9,18 @@ int main(int argc, char** argv) {
   unsigned int clientLength;
   char filename[RECV_BUF_SIZE];
   int msgSize;
+  int windowSize;
+  float errorProbability;
 
-  // check that server port was provided
-  if (argc != 2) {
+  // check that server port and window size was provided
+  if (argc != 4) {
     fprintf(stderr, "[SERVER] Usage: %s <server port number>\n", argv[0]);
     exit(1);
   }
 
   serverPort = atoi(argv[1]); // set server port
+  windowSize = atoi(argv[2]); // set window size
+  errorProbability = atof(argv[3]); // set probability of intentional errors
 
   // create UDP socket
   if ((serverSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -66,8 +70,6 @@ int main(int argc, char** argv) {
       stat(filename, &st);
       fileSize = st.st_size;
     }
-
-    printf("[SERVER] Client address: %d\n", clientAddress);
 
     // send fileSize
     if (sendto(

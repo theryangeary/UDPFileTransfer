@@ -1,10 +1,15 @@
 #!/bin/bash
-kill -9 $(ps aux | grep "\./server" | head -1 | awk '{print $2}')
+port=45000
+windowsize=8
+error=0
+serverIP=127.0.0.1
+filename=file1
+kill -9 $(lsof -i udp:$port | tail -1 | awk '{print $2}')
 set -e
 make
 mv client test
-./server 45000 &
+./server $port $windowsize $error &
 cd test
-./client 127.0.0.1 45000 server
-cat file1
+./client $serverIP $port $filename
+cat $filename
 cd ..
