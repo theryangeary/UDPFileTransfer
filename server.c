@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
           (struct sockaddr*) &clientAddress,
           sizeof(clientAddress))
         != sizeof(int)) {
-      printf("[SERVER] Failed to send file size\n");
+      perror("[SERVER] Failed to send file size");
     } else {
       // open file
       int file = open(filename, O_RDONLY);
@@ -96,18 +96,35 @@ int main(int argc, char** argv) {
       char sendBuffer[BUF_SIZE];
       int sendTotal = 0;
       unsigned char check = 0;
+      unsigned char packetCheck = 0;
+      // GBN setup
+      int base = 0;
+      int nextseqnum = 0;
       // send file to client
-      while (sendTotal < fileSize){
-        readResult = read(file, sendBuffer, BUF_SIZE);
+      while (nextseqnum < fileSize){
+        // set send buffer with:
+        // - seqnum
+        sendBuffer[0] = (char) nextseqnum;
+        // - data
+        readResult = read(
+            file,
+            sendBuffer+sizeof(nextseqnum),
+            BUF_SIZE-sizeof(packetCheck)-1);
+        // - checksum
+        packetCheck = checksum(sendBuffer, readResult, packetCheck);
+        sendBuffer[BUF_SIZE-1] = packetCheck;
+        // track total checksum to make sure final file is correct later
         check = checksum(sendBuffer, readResult, check);
+        // send to client
         sendResult = sendto(
             serverSocket,
             sendBuffer,
-            readResult,
+            readResult + sizeof(nextseqnum) + sizeof(packetCheck),
             0,
             (struct sockaddr*) &clientAddress,
             sizeof(clientAddress));
-        sendTotal += sendResult;
+        nextseqnum = nextseqnum + readResult;
+        /*sendTotal += sendResult;*/
       }
 
       // send checksum of file

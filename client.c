@@ -85,15 +85,24 @@ int main(int argc, char** argv) {
 
     printf("[CLIENT] Receiving file\n");
     unsigned char check = 0;
+    unsigned char packetCheck;
+    int seqnum = 0;
     // receive file and calculate checksum
     while (totalBytesReceived < fileSize) {
+      packetCheck = 0;
       bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
-      totalBytesReceived += bytesReceived;
+      totalBytesReceived += bytesReceived - sizeof(seqnum) - sizeof(packetCheck);
+      seqnum = *rcvBuffer;
+      printf("[CLIENT] Sequence number: %d\n", seqnum);
       if (totalBytesReceived > fileSize) {
         bytesReceived--;
         check = checksum(rcvBuffer+bytesReceived, 1, check);
       }
-      int writeResult = write(downloadedFile, rcvBuffer, bytesReceived);
+      lseek(downloadedFile, seqnum, SEEK_SET);
+      int writeResult = write(
+          downloadedFile,
+          rcvBuffer+sizeof(seqnum),
+          bytesReceived - sizeof(seqnum) - sizeof(packetCheck));
       check = checksum(rcvBuffer, bytesReceived, check);
     }
 
