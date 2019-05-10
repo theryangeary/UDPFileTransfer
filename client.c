@@ -92,7 +92,11 @@ int main(int argc, char** argv) {
       packetCheck = 0;
       bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
       totalBytesReceived += bytesReceived - sizeof(seqnum) - sizeof(packetCheck);
-      seqnum = ((unsigned) rcvBuffer[0]) << 24 | ((unsigned) rcvBuffer[1]) << 16 | ((unsigned) rcvBuffer[2]) << 8 | ((unsigned) rcvBuffer[3]);
+      seqnum =
+        ((unsigned char) rcvBuffer[0]) << 24 |
+        ((unsigned char) rcvBuffer[1]) << 16 |
+        ((unsigned char) rcvBuffer[2]) << 8 |
+        ((unsigned char) rcvBuffer[3]);
       if (totalBytesReceived > fileSize) {
         bytesReceived--;
         check = checksum(rcvBuffer+bytesReceived+sizeof(seqnum), 1, check);
