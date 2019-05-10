@@ -55,6 +55,7 @@ int main(int argc, char** argv) {
 
     // receive status of access() on server
     int fileSize;
+    fromSize = sizeof(fromAddress);
     if ((bytesReceived = recvfrom(
             sock,
             &fileSize,

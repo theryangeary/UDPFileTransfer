@@ -42,9 +42,10 @@ int main(int argc, char** argv) {
     printf("[SERVER] bind() succeeded\n");
   }
 
+  clientLength = sizeof(clientAddress);
+
   for (;;) {
 
-    printf("[SERVER] Handling request from %s\n", inet_ntoa(clientAddress.sin_addr));
     if ((msgSize = recvfrom(
             serverSocket,
             filename,
@@ -57,6 +58,7 @@ int main(int argc, char** argv) {
     }
     filename[msgSize] = '\0';
 
+    printf("[SERVER] Handling request from %s\n", inet_ntoa(clientAddress.sin_addr));
     printf("[SERVER] Message size: %d\n", msgSize);
     printf("[SERVER] Filename: %s\n", filename);
 
