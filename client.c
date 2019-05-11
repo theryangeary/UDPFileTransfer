@@ -102,13 +102,14 @@ int main(int argc, char** argv) {
           rcvBuffer+sizeof(seqnum),
           bytesReceived-sizeof(seqnum),
           packetCheck);
+      int nextseqnum;
+      char sendBuffer[sizeof(nextseqnum)];
       if (0 == packetCheck) {
         // inform the user
         printf("[CLIENT] good packetCheck\n");
         // inform the server
-        char sendBuffer[sizeof(seqnum)];
         totalBytesReceived += bytesReceived - sizeof(seqnum) - sizeof(packetCheck);
-        int nextseqnum = totalBytesReceived + 1;
+        nextseqnum = totalBytesReceived + 1;
         // set next seqnum to request
         sendBuffer[0] = nextseqnum >> 24;
         sendBuffer[1] = nextseqnum >> 16;
