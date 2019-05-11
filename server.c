@@ -99,14 +99,14 @@ int main(int argc, char** argv) {
       unsigned char packetCheck = 0;
       // GBN setup
       int base = 0;
-      int nak = 0;
+      int ack = 0;
       unsigned int nextseqnum = 0;
       // send file to client
       while (nextseqnum < fileSize){
         // check for NAKs and set nextseqnum accordingly
         char rcvBuffer[BUF_SIZE];
         int skipCheck = 0;
-        if ((nak = recvfrom(
+        if ((ack = recvfrom(
                 serverSocket,
                 rcvBuffer,
                 sizeof(nextseqnum),
