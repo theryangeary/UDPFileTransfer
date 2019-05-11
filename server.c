@@ -101,11 +101,12 @@ int main(int argc, char** argv) {
       int base = 0;
       int ack = 0;
       unsigned int nextseqnum = 0;
+      char rcvBuffer[sizeof(nextseqnum)];
+      int skipCheck = 0;
       // send file to client
       while (nextseqnum < fileSize){
-        // check for NAKs and set nextseqnum accordingly
-        char rcvBuffer[BUF_SIZE];
-        int skipCheck = 0;
+        // check for ACKs and set nextseqnum accordingly
+        skipCheck = 0;
         if ((ack = recvfrom(
                 serverSocket,
                 rcvBuffer,
