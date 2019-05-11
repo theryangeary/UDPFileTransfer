@@ -123,24 +123,37 @@ int main(int argc, char** argv) {
               (struct sockaddr*) &serverAddress,
               sizeof(serverAddress))
             != sizeof(nextseqnum)) {
+          printf("[CLIENT] failed to send ACK\n");
+        }
+        // account for file-ending checksum
+        if (totalBytesReceived > fileSize) {
+          bytesReceived--;
+          check = checksum(rcvBuffer+bytesReceived+sizeof(seqnum), 1, check);
+        }
+        // go to location of given bytes
+        lseek(downloadedFile, seqnum, SEEK_SET);
+        // write data to file
+        int writeResult = write(
+            downloadedFile,
+            rcvBuffer+sizeof(seqnum),
+            bytesReceived - sizeof(seqnum) - sizeof(packetCheck));
+        check = checksum(rcvBuffer+sizeof(seqnum), bytesReceived-sizeof(seqnum), check);
+      } else {
+        // inform the user
+        printf("[CLIENT] bad packet\n");
+        // inform the server
+        strncpy(sendBuffer, rcvBuffer, sizeof(nextseqnum));
+        if (sendto(
+              sock,
+              sendBuffer,
+              sizeof(nextseqnum),
+              0,
+              (struct sockaddr*) &serverAddress,
+              sizeof(serverAddress))
+            != sizeof(nextseqnum)) {
           printf("[CLIENT] failed to send NAK\n");
         }
-        // don't do any of the things you should do with good packets.
-        /*continue;*/
       }
-      // account for file-ending checksum
-      if (totalBytesReceived > fileSize) {
-        bytesReceived--;
-        check = checksum(rcvBuffer+bytesReceived+sizeof(seqnum), 1, check);
-      }
-      // go to location of given bytes
-      lseek(downloadedFile, seqnum, SEEK_SET);
-      // write data to file
-      int writeResult = write(
-          downloadedFile,
-          rcvBuffer+sizeof(seqnum),
-          bytesReceived - sizeof(seqnum) - sizeof(packetCheck));
-      check = checksum(rcvBuffer+sizeof(seqnum), bytesReceived-sizeof(seqnum), check);
     }
 
     // close file
