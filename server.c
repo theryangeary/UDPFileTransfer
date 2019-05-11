@@ -123,10 +123,7 @@ int main(int argc, char** argv) {
         packetCheck = checksum(sendBuffer+sizeof(nextseqnum), readResult, packetCheck);
         sendBuffer[readResult+sizeof(nextseqnum)] = packetCheck;
         // track total checksum to make sure final file is correct later
-        /*// adjusting for repeat packets*/
-        /*if (0 != skipCheck) {*/
-          check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
-        /*}*/
+        check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
         // simulate bit errors
         if (((float) random()) / RAND_MAX < errorProbability && nextseqnum != 0) {
           sendBuffer[sizeof(nextseqnum)+1] = !sendBuffer[sizeof(nextseqnum)+1];
@@ -140,7 +137,6 @@ int main(int argc, char** argv) {
             (struct sockaddr*) &clientAddress,
             sizeof(clientAddress));
         nextseqnum = nextseqnum + readResult;
-        /*sendTotal += sendResult;*/
         // check for ACKs and set nextseqnum accordingly
         skipCheck = 0;
         ack = recvfrom(
@@ -156,7 +152,6 @@ int main(int argc, char** argv) {
           ((unsigned char) rcvBuffer[2]) << 8 |
           ((unsigned char) rcvBuffer[3]);
         printf("[SERVER] nextseqnum: %d\n", nextseqnum);
-        /*skipCheck++;*/
       }
 
       // send checksum of file
