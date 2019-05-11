@@ -139,14 +139,14 @@ int main(int argc, char** argv) {
         packetCheck = checksum(sendBuffer+sizeof(nextseqnum), readResult, packetCheck);
         sendBuffer[readResult+sizeof(nextseqnum)] = packetCheck;
         // track total checksum to make sure final file is correct later
-        // adjusting for repeat packets
-        if (0 != skipCheck) {
+        /*// adjusting for repeat packets*/
+        /*if (0 != skipCheck) {*/
           check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
-        }
+        /*}*/
         // simulate bit errors
-        if (((float) random()) / RAND_MAX < errorProbability) {
-          sendBuffer[sizeof(nextseqnum)+1] = !sendBuffer[sizeof(nextseqnum)+1];
-        }
+        /*if (((float) random()) / RAND_MAX < errorProbability) {*/
+          /*sendBuffer[sizeof(nextseqnum)+1] = !sendBuffer[sizeof(nextseqnum)+1];*/
+        /*}*/
         // send to client
         sendResult = sendto(
             serverSocket,
