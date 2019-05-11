@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
       char sendBuffer[sizeof(nextseqnum)];
       if (0 == packetCheck) {
         // inform the user
-        printf("[CLIENT] good packetCheck\n");
+        printf("[CLIENT] good packetCheck: %s\n", rcvBuffer+sizeof(seqnum));
         // inform the server
         totalBytesReceived += bytesReceived - sizeof(seqnum) - sizeof(packetCheck);
         nextseqnum = totalBytesReceived + 1;
@@ -139,10 +139,14 @@ int main(int argc, char** argv) {
             bytesReceived - sizeof(seqnum) - sizeof(packetCheck));
         check = checksum(rcvBuffer+sizeof(seqnum), bytesReceived-sizeof(seqnum), check);
       } else {
+        // use same seqnum again
+        sendBuffer[0] = nextseqnum >> 24;
+        sendBuffer[1] = nextseqnum >> 16;
+        sendBuffer[2] = nextseqnum >> 8;
+        sendBuffer[3] = nextseqnum - 1;
         // inform the user
-        printf("[CLIENT] bad packet\n");
+        printf("[CLIENT] bad packet, requesting resend\n");
         // inform the server
-        strncpy(sendBuffer, rcvBuffer, sizeof(nextseqnum));
         if (sendto(
               sock,
               sendBuffer,

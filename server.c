@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
           check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
         /*}*/
         // simulate bit errors
-        if (((float) random()) / RAND_MAX < errorProbability) {
+        if (((float) random()) / RAND_MAX < errorProbability && nextseqnum != 0) {
           sendBuffer[sizeof(nextseqnum)+1] = !sendBuffer[sizeof(nextseqnum)+1];
         }
         // send to client
@@ -155,6 +155,7 @@ int main(int argc, char** argv) {
           ((unsigned char) rcvBuffer[1]) << 16 |
           ((unsigned char) rcvBuffer[2]) << 8 |
           ((unsigned char) rcvBuffer[3]);
+        printf("[SERVER] nextseqnum: %d\n", nextseqnum);
         /*skipCheck++;*/
       }
 
