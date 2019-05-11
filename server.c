@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
         // track total checksum to make sure final file is correct later
         // adjusting for repeat packets
         if (0 != skipCheck) {
-        check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
+          check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
         }
         // simulate bit errors
         if (((float) random()) / RAND_MAX < errorProbability) {
