@@ -90,7 +90,6 @@ int main(int argc, char** argv) {
     // receive file and calculate checksum
     while (totalBytesReceived < fileSize) {
       bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
-      totalBytesReceived += bytesReceived - sizeof(seqnum) - sizeof(packetCheck);
       // reassemble sequence number
       seqnum =
         ((unsigned char) rcvBuffer[0]) << 24 |
@@ -103,24 +102,30 @@ int main(int argc, char** argv) {
           rcvBuffer+sizeof(seqnum),
           bytesReceived-sizeof(seqnum),
           packetCheck);
-      if (0 != packetCheck) {
+      if (0 == packetCheck) {
         // inform the user
-        printf("[CLIENT] bad packetCheck\n");
+        printf("[CLIENT] good packetCheck\n");
         // inform the server
         char sendBuffer[sizeof(seqnum)];
-        strncpy(sendBuffer, rcvBuffer, sizeof(seqnum));
+        totalBytesReceived += bytesReceived - sizeof(seqnum) - sizeof(packetCheck);
+        int nextseqnum = totalBytesReceived + 1;
+        // set next seqnum to request
+        sendBuffer[0] = nextseqnum >> 24;
+        sendBuffer[1] = nextseqnum >> 16;
+        sendBuffer[2] = nextseqnum >> 8;
+        sendBuffer[3] = nextseqnum - 1;
         if (sendto(
               sock,
               sendBuffer,
-              sizeof(seqnum),
+              sizeof(nextseqnum),
               0,
               (struct sockaddr*) &serverAddress,
               sizeof(serverAddress))
-            != sizeof(seqnum)) {
+            != sizeof(nextseqnum)) {
           printf("[CLIENT] failed to send NAK\n");
         }
         // don't do any of the things you should do with good packets.
-        continue;
+        /*continue;*/
       }
       // account for file-ending checksum
       if (totalBytesReceived > fileSize) {
