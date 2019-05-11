@@ -108,15 +108,15 @@ int main(int argc, char** argv) {
         sendBuffer[1] = nextseqnum >> 16;
         sendBuffer[2] = nextseqnum >> 8;
         sendBuffer[3] = nextseqnum;
-        printf("sendBuffer: %.4s\n", sendBuffer);
         // - data
         readResult = read(
             file,
             sendBuffer+sizeof(nextseqnum),
-            BUF_SIZE-sizeof(nextseqnum)-sizeof(packetCheck)-1);
+            BUF_SIZE-sizeof(nextseqnum)-sizeof(packetCheck));
         // - checksum
+        packetCheck = 0;
         packetCheck = checksum(sendBuffer+sizeof(nextseqnum), readResult, packetCheck);
-        sendBuffer[BUF_SIZE-1] = packetCheck;
+        sendBuffer[readResult+sizeof(nextseqnum)] = packetCheck;
         // track total checksum to make sure final file is correct later
         check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
         // send to client
@@ -128,7 +128,6 @@ int main(int argc, char** argv) {
             (struct sockaddr*) &clientAddress,
             sizeof(clientAddress));
         nextseqnum = nextseqnum + readResult;
-        printf("Next seqnum: %d\n", nextseqnum);
         /*sendTotal += sendResult;*/
       }
 

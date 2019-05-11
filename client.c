@@ -89,24 +89,41 @@ int main(int argc, char** argv) {
     unsigned int seqnum = 0;
     // receive file and calculate checksum
     while (totalBytesReceived < fileSize) {
-      packetCheck = 0;
       bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
       totalBytesReceived += bytesReceived - sizeof(seqnum) - sizeof(packetCheck);
+      // reassemble sequence number
       seqnum =
         ((unsigned char) rcvBuffer[0]) << 24 |
         ((unsigned char) rcvBuffer[1]) << 16 |
         ((unsigned char) rcvBuffer[2]) << 8 |
         ((unsigned char) rcvBuffer[3]);
+      // check packet doesn't have flipped bits
+      packetCheck = 0;
+      packetCheck = checksum(
+          rcvBuffer+sizeof(seqnum),
+          bytesReceived-sizeof(seqnum),
+          packetCheck);
+      if (0 != packetCheck) {
+        // inform the user
+        printf("[CLIENT] bad packetCheck\n");
+        // inform the server
+        // TODO
+        // don't do any of the things you should do with good packets.
+        continue;
+      }
+      // account for file-ending checksum
       if (totalBytesReceived > fileSize) {
         bytesReceived--;
         check = checksum(rcvBuffer+bytesReceived+sizeof(seqnum), 1, check);
       }
+      // go to location of given bytes
       lseek(downloadedFile, seqnum, SEEK_SET);
+      // write data to file
       int writeResult = write(
           downloadedFile,
           rcvBuffer+sizeof(seqnum),
           bytesReceived - sizeof(seqnum) - sizeof(packetCheck));
-      check = checksum(rcvBuffer+sizeof(seqnum), bytesReceived, check);
+      check = checksum(rcvBuffer+sizeof(seqnum), bytesReceived-sizeof(seqnum), check);
     }
 
     // close file
