@@ -139,19 +139,28 @@ int main(int argc, char** argv) {
         nextseqnum = nextseqnum + readResult;
         // check for ACKs and set nextseqnum accordingly
         skipCheck = 0;
+        int flags;
+        if (nextseqnum >
+            base + windowSize*(BUF_SIZE-sizeof(nextseqnum)-sizeof(packetCheck))) {
+          flags = 0;
+        } else {
+          flags = MSG_DONTWAIT;
+        }
         ack = recvfrom(
-                serverSocket,
-                rcvBuffer,
-                sizeof(nextseqnum),
-                0,
-                (struct sockaddr*) &clientAddress,
-                &clientLength);
+            serverSocket,
+            rcvBuffer,
+            sizeof(nextseqnum),
+            0,
+            (struct sockaddr*) &clientAddress,
+            &clientLength);
         nextseqnum =
           ((unsigned char) rcvBuffer[0]) << 24 |
           ((unsigned char) rcvBuffer[1]) << 16 |
           ((unsigned char) rcvBuffer[2]) << 8 |
           ((unsigned char) rcvBuffer[3]);
-        printf("[SERVER] nextseqnum: %d\n", nextseqnum);
+        if (-1 != ack) {
+          base = nextseqnum;
+        }
       }
 
       // send checksum of file
