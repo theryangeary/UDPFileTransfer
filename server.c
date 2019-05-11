@@ -105,24 +105,8 @@ int main(int argc, char** argv) {
       int skipCheck = 0;
       // send file to client
       while (nextseqnum < fileSize){
-        // check for ACKs and set nextseqnum accordingly
-        skipCheck = 0;
-        if ((ack = recvfrom(
-                serverSocket,
-                rcvBuffer,
-                sizeof(nextseqnum),
-                MSG_DONTWAIT,
-                (struct sockaddr*) &clientAddress,
-                &clientLength))
-            > 0) {
-          nextseqnum =
-            ((unsigned char) rcvBuffer[0]) << 24 |
-            ((unsigned char) rcvBuffer[1]) << 16 |
-            ((unsigned char) rcvBuffer[2]) << 8 |
-            ((unsigned char) rcvBuffer[3]);
-          lseek(file, nextseqnum, SEEK_SET);
-          skipCheck++;
-        }
+        // set position in file based on nextseqnum
+        lseek(file, nextseqnum, SEEK_SET);
         // set up send buffer with:
         // - seqnum
         sendBuffer[0] = nextseqnum >> 24;
@@ -157,6 +141,21 @@ int main(int argc, char** argv) {
             sizeof(clientAddress));
         nextseqnum = nextseqnum + readResult;
         /*sendTotal += sendResult;*/
+        // check for ACKs and set nextseqnum accordingly
+        skipCheck = 0;
+        ack = recvfrom(
+                serverSocket,
+                rcvBuffer,
+                sizeof(nextseqnum),
+                0,
+                (struct sockaddr*) &clientAddress,
+                &clientLength);
+        nextseqnum =
+          ((unsigned char) rcvBuffer[0]) << 24 |
+          ((unsigned char) rcvBuffer[1]) << 16 |
+          ((unsigned char) rcvBuffer[2]) << 8 |
+          ((unsigned char) rcvBuffer[3]);
+        /*skipCheck++;*/
       }
 
       // send checksum of file
