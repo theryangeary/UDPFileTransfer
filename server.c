@@ -99,10 +99,28 @@ int main(int argc, char** argv) {
       unsigned char packetCheck = 0;
       // GBN setup
       int base = 0;
+      int nak = 0;
       unsigned int nextseqnum = 0;
       // send file to client
       while (nextseqnum < fileSize){
-        // set send buffer with:
+        // check for NAKs and set nextseqnum accordingly
+        char rcvBuffer[BUF_SIZE];
+        if ((nak = recvfrom(
+                serverSocket,
+                rcvBuffer,
+                sizeof(nextseqnum),
+                MSG_DONTWAIT,
+                (struct sockaddr*) &clientAddress,
+                &clientLength))
+            > 0) {
+          nextseqnum =
+            ((unsigned char) rcvBuffer[0]) << 24 |
+            ((unsigned char) rcvBuffer[1]) << 16 |
+            ((unsigned char) rcvBuffer[2]) << 8 |
+            ((unsigned char) rcvBuffer[3]);
+          lseek(file, nextseqnum, SEEK_SET);
+        }
+        // set up send buffer with:
         // - seqnum
         sendBuffer[0] = nextseqnum >> 24;
         sendBuffer[1] = nextseqnum >> 16;
@@ -143,7 +161,7 @@ int main(int argc, char** argv) {
 
       printf("[SERVER] Done sending file %s\n", filename);
     }
- }
+  }
 
   return 0;
 }

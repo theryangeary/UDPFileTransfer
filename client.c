@@ -107,7 +107,18 @@ int main(int argc, char** argv) {
         // inform the user
         printf("[CLIENT] bad packetCheck\n");
         // inform the server
-        // TODO
+        char sendBuffer[sizeof(seqnum)];
+        strncpy(sendBuffer, rcvBuffer, sizeof(seqnum));
+        if (sendto(
+              sock,
+              sendBuffer,
+              sizeof(seqnum),
+              0,
+              (struct sockaddr*) &serverAddress,
+              sizeof(serverAddress))
+            != sizeof(seqnum)) {
+          printf("[CLIENT] failed to send NAK\n");
+        }
         // don't do any of the things you should do with good packets.
         continue;
       }
