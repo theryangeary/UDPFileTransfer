@@ -87,6 +87,7 @@ int main(int argc, char** argv) {
     unsigned char check = 0;
     unsigned char packetCheck;
     unsigned int seqnum = 0;
+    int nextseqnum = 0;
     // receive file and calculate checksum
     while (totalBytesReceived < fileSize) {
       bytesReceived = recv(sock, rcvBuffer, RECV_BUF_SIZE, 0);
@@ -102,7 +103,6 @@ int main(int argc, char** argv) {
           rcvBuffer+sizeof(seqnum),
           bytesReceived-sizeof(seqnum),
           packetCheck);
-      int nextseqnum;
       char sendBuffer[sizeof(nextseqnum)];
       if (0 == packetCheck) {
         // inform the user
