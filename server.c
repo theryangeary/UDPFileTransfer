@@ -105,6 +105,7 @@ int main(int argc, char** argv) {
       while (nextseqnum < fileSize){
         // check for NAKs and set nextseqnum accordingly
         char rcvBuffer[BUF_SIZE];
+        int skipCheck = 0;
         if ((nak = recvfrom(
                 serverSocket,
                 rcvBuffer,
@@ -119,6 +120,7 @@ int main(int argc, char** argv) {
             ((unsigned char) rcvBuffer[2]) << 8 |
             ((unsigned char) rcvBuffer[3]);
           lseek(file, nextseqnum, SEEK_SET);
+          skipCheck++;
         }
         // set up send buffer with:
         // - seqnum
@@ -136,7 +138,14 @@ int main(int argc, char** argv) {
         packetCheck = checksum(sendBuffer+sizeof(nextseqnum), readResult, packetCheck);
         sendBuffer[readResult+sizeof(nextseqnum)] = packetCheck;
         // track total checksum to make sure final file is correct later
+        // adjusting for repeat packets
+        if (0 != skipCheck) {
         check = checksum(sendBuffer+sizeof(nextseqnum), readResult, check);
+        }
+        // simulate bit errors
+        if (((float) random()) / RAND_MAX < errorProbability) {
+          sendBuffer[sizeof(nextseqnum)+1] = !sendBuffer[sizeof(nextseqnum)+1];
+        }
         // send to client
         sendResult = sendto(
             serverSocket,
